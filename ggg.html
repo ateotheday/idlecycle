@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fun Useless Calendar with Backwards Clock & Confetti & Zodiac Forecast</title>
+ 
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Comfortaa&display=swap');
+    body {
+      font-family: 'Comfortaa', cursive, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      align-items: center;
+      margin: 0;
+    }
+  
+    
+    #container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    #clock {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      background: white;
+      border: 8px solid #7b1fa2;
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(123,31,162,0.7);
+      margin: 0 auto;
+    }
+    /* Clock center dot */
+    #clock::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: #7b1fa2;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 8px rgba(123,31,162,0.9);
+      z-index: 10;
+    }
+    /* Clock ticks */
+    .tick {
+      position: absolute;
+      width: 4px;
+      height: 14px;
+      background: #7b1fa2;
+      top: 12px;
+      left: 50%;
+      transform-origin: center 100%;
+      border-radius: 2px;
+      box-shadow: 0 0 5px rgba(123,31,162,0.7);
+    }
+    /* Hour hand */
+    #hourHand {
+      position: absolute;
+      width: 8px;
+      height: 60px;
+      background: #d81b60;
+      top: 50%;
+      left: 50%;
+      border-radius: 6px;
+      transform-origin: 50% 90%;
+      transform: translate(-50%, -100%) rotate(0deg);
+      box-shadow: 0 0 12px #d81b60;
+      z-index: 9;
+    }
+    /* Minute hand */
+    #minuteHand {
+      position: absolute;
+      width: 6px;
+      height: 90px;
+      background: #7b1fa2;
+      top: 50%;
+      left: 50%;
+      border-radius: 6px;
+      transform-origin: 50% 90%;
+      transform: translate(-50%, -100%) rotate(0deg);
+      box-shadow: 0 0 10px #7b1fa2;
+      z-index: 8;
+    }
+    /* Second hand */
+    #secondHand {
+      position: absolute;
+      width: 3px;
+      height: 100px;
+      background: #ff4081;
+      top: 50%;
+      left: 50%;
+      border-radius: 6px;
+      transform-origin: 50% 90%;
+      transform: translate(-50%, -100%) rotate(0deg);
+      box-shadow: 0 0 8px #ff4081;
+      z-index: 7;
+    }
+
+    #calendar {
+      max-width: 650px;
+      width: 100%;
+      background: white;
+      padding: 30px 40px 40px;
+      border-radius: 15px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+      user-select: none;
+    }
+    #monthYear {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: #4a148c;
+      letter-spacing: 1px;
+      text-shadow: 0 0 5px #b39ddb;
+    }
+    #controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    button {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 8px;
+      background: #7b1fa2;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgb(123 31 162 / 0.6);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    button:hover {
+      background: #9c27b0;
+      box-shadow: 0 6px 20px rgb(156 39 176 / 0.8);
+    }
+    select, input[type="date"] {
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 2px solid #b39ddb;
+      font-weight: 600;
+      color: #4a148c;
+      background: #ede7f6;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(180, 157, 219, 0.5);
+      transition: border-color 0.3s ease;
+    }
+    select:hover, input[type="date"]:hover {
+      border-color: #7b1fa2;
+    }
+    #days, #weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      user-select: none;
+    }
+    #weekdays > div {
+      font-weight: 700;
+      color: #7b1fa2;
+      text-align: center;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #b39ddb;
+    }
+    #days > div {
+      background: #ede7f6;
+      padding: 14px 0;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 10px;
+      font-weight: 600;
+      color: #4a148c;
+      box-shadow: 0 4px 10px rgb(180 157 219 / 0.5);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+      position: relative;
+    }
+    #days > div.empty {
+      background: transparent;
+      cursor: default;
+      box-shadow: none;
+    }
+    #days > div:hover:not(.empty) {
+      background: #7b1fa2;
+      color: white;
+      box-shadow: 0 6px 20px rgb(123 31 162 / 0.9);
+      transform: translateY(-3px);
+      z-index: 5;
+    }
+
+    #days > div.today {
+      background: #ffcc80;
+      color: #bf360c;
+      font-weight: 700;
+      box-shadow: 0 0 15px #ffb74d;
+    }
+
+    /* Popup styles */
+    #eventPopup {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 3px solid #7b1fa2;
+      padding: 25px 30px;
+      border-radius: 20px;
+      max-width: 360px;
+      box-shadow: 0 0 25px rgba(123,31,162,0.8);
+      z-index: 1000;
+      text-align: center;
+    }
+    #eventPopup img {
+      max-width: 100%;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: none;
+    }
+    #eventPopup pre {
+      white-space: pre-wrap;
+      font-size: 16px;
+      margin-bottom: 15px;
+      color: #4a148c;
+    }
+    #eventPopup button {
+      background: #7b1fa2;
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(123,31,162,0.7);
+      transition: background-color 0.3s ease;
+    }
+    #eventPopup button:hover {
+      background: #9c27b0;
+    }
+
+    /* Zodiac forecast styles */
+    #zodiacContainer {
+      background: white;
+      border-radius: 15px;
+      padding: 20px 25px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 650px;
+      color: #4a148c;
+      font-weight: 600;
+      font-size: 1.1rem;
+      user-select: none;
+      text-align: center;
+    }
+
+    /* Confetti container */
+    #confetti-wrapper {
+      pointer-events: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: visible;
+      z-index: 1500;
+      display: none;
+    }
+    canvas {
+      position: fixed;
+      pointer-events: none;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1500;
+    }
+  </style>
+</head>
+<body>
+    
+<div id="container">
+  <div id="clock">
+    <div id="hourHand"></div>
+    <div id="minuteHand"></div>
+    <div id="secondHand"></div>
+  </div>
+
+  <div id="calendar">
+    <div id="controls">
+      <button id="prevMonth">&lt; Prev</button>
+      <span id="monthYear"></span>
+      <button id="nextMonth">Next &gt;</button>
+      <select id="year"></select>
+    </div>
+    <div id="weekdays"></div>
+    <div id="days"></div>
+  </div>
+
+  <div id="zodiacContainer">
+    <h3>Get Your Zodiac Weather Forecast</h3>
+    <input type="date" id="dobInput" max="2025-12-31" />
+    <button id="getZodiacBtn">Show My Zodiac Forecast</button>
+    <div id="zodiacResult" style="margin-top:15px;"></div>
+  </div>
+</div>
+
+<!-- Popup -->
+<div id="eventPopup">
+  <img id="eventImage" alt="Event Image">
+  <pre id="eventMessage"></pre>
+  <button onclick="closePopup()">Close</button>
+</div>
+
+<!-- Confetti container -->
+<div id="confetti-wrapper"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+  const monthNames = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+  ];
+  const weekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  let currentMonth = new Date().getMonth();
+  let currentYear = new Date().getFullYear();
+  const todayDate = new Date(2025, 7, 8); // Fixed today's date: 8 Aug 2025
+
+  let events = {};
+
+  const fakeHolidays = [
+    "International Potato Day 🥔",
+    "National Nap Time 😴",
+    "State CryBaby Day",
+    "Talking Tom Day 🏴‍☠️",
+    "Invisible Friend Day 👻",
+    "Waste bin Day",
+    "Act like a snail Day",
+    "Celebrate Your Own BirthDay on a random day 🎉",
+    "Bubble Wrap Popping Day 🫧"
+  ];
+
+  const eventDescriptions = {
+    "International Potato Day 🥔": "Celebrate the humble potato — the world's most versatile couch companion.",
+    "National Nap Time 😴": "Because the only thing better than a nap is *two* naps.",
+    "State CryBaby Day": "World Cry Baby Day is a lighthearted celebration reminding us that it’s okay to let out our emotions and have a good cry now and then.",
+    "Talking Tom Day 🏴‍☠️": "Celebrate your favorite cheeky virtual cat by having some fun and maybe even talking back!",
+    "Invisible Friend Day 👻": "Honoring those friends who only exist in your imagination (and your jokes).",
+    "Waste bin Day": "Waste Bin Day encourages everyone to properly dispose of their trash, keep our environment clean, and promote recycling habits.",
+    "Act like a snail Day": "Snail Day celebrates the slow and steady pace of life. It’s a reminder to take things easy, enjoy the little moments, and appreciate the journey rather than rushing to the destination.",
+    "Celebrate Your Own BirthDay on a random day 🎉": "Because self-love is the best love — balloons optional.",
+    "Bubble Wrap Popping Day 🫧": "Pop your stress away, one satisfying bubble at a time."
+  };
+
+  const fakeHolidayImages = {
+    "International Potato Day 🥔": "https://gifdb.com/images/featured/potato-ipejt88wevplyr40.gif",
+    "National Nap Time 😴": "https://media.tenor.com/iE-4pXEdUykAAAAM/cat-couverture.gif",
+    "State CryBaby Day": "https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUyaHkwN2FvNDQ3eWJvdjE4N2tleDh1ZXZzMnFod3BlamNreTZyY3VjOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/2Qs2hKWMvEzdu/source.gif",
+    "Talking Tom Day 🏴‍☠️": "https://m.media-amazon.com/images/S/pv-target-images/ec277100457dbf33487015257367daab1211d19c1259bd418c6a6c155b923bf4.jpg",
+    "Invisible Friend Day 👻": "https://therationalmale.com/wp-content/uploads/2011/09/imaginary-friend.jpg",
+    "Waste bin Day": "https://media.tenor.com/dbXafsDQs2kAAAAM/trash.gif",
+    "Act like a snail Day": "https://i.pinimg.com/originals/ce/95/a6/ce95a6ff0c539f93f5cbd4bf2abb6b62.gif",
+    "Celebrate Your Own BirthDay on a random day 🎉": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtYGi02Bk1rcP09mSM9z833CEgSQJLyo-Tlg&s",
+    "Bubble Wrap Popping Day 🫧": "https://www.shutterstock.com/image-photo/middle-aged-man-popping-bubble-260nw-676135291.jpg"
+  };
+
+  const yearSelect = document.getElementById("year");
+  for (let y = 1900; y <= 2030; y++) {
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    yearSelect.appendChild(opt);
+  }
+  yearSelect.value = currentYear;
+
+  // Add weekday labels
+  const weekdaysContainer = document.getElementById("weekdays");
+  function renderWeekdays() {
+    weekdaysContainer.innerHTML = "";
+    for(let wd of weekdayNames) {
+      const wdDiv = document.createElement("div");
+      wdDiv.textContent = wd;
+      weekdaysContainer.appendChild(wdDiv);
+    }
+  }
+  renderWeekdays();
+
+  // Choose a random lucky day for this month & year
+  let luckyDay = null;
+  function pickLuckyDay(daysInMonth) {
+    luckyDay = Math.floor(Math.random() * daysInMonth) + 1;
+  }
+
+  function renderCalendar() {
+    const daysContainer = document.getElementById("days");
+    const monthYearDisplay = document.getElementById("monthYear");
+    daysContainer.innerHTML = "";
+
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    yearSelect.value = currentYear;
+
+    pickLuckyDay(daysInMonth);
+
+    for (let i = 0; i < firstDay; i++) {
+      const emptyDiv = document.createElement("div");
+      emptyDiv.classList.add("empty");
+      daysContainer.appendChild(emptyDiv);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayElem = document.createElement("div");
+      dayElem.textContent = day;
+      dayElem.style.cursor = "pointer";
+
+      if (currentYear === todayDate.getFullYear() &&
+          currentMonth === todayDate.getMonth() &&
+          day === todayDate.getDate()) {
+        dayElem.classList.add("today");
+      }
+
+      dayElem.addEventListener("click", () => handleDateClick(day));
+      if(day === luckyDay){
+        dayElem.title = "Lucky Day! Click me!";
+        dayElem.style.fontWeight = "bold";
+        dayElem.style.color = "#d81b60";
+        dayElem.style.textShadow = "0 0 8px #f48fb1";
+      }
+
+      daysContainer.appendChild(dayElem);
+    }
+  }
+
+  function handleDateClick(day) {
+    const mm = String(currentMonth + 1).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    const key = `${mm}-${dd}`;
+
+    const eventPopup = document.getElementById("eventPopup");
+    const eventMessage = document.getElementById("eventMessage");
+    const eventImage = document.getElementById("eventImage");
+
+    function getOrdinalSuffix(n) {
+      if (n > 3 && n < 21) return "th";
+      switch (n % 10) {
+        case 1: return "st";
+        case 2: return "nd";
+        case 3: return "rd";
+        default: return "th";
+      }
+    }
+    const formattedDate = `${monthNames[currentMonth]} ${day}${getOrdinalSuffix(day)}`;
+
+    if (!events[key] || events[key].length === 0) {
+      if(day === luckyDay){
+        // Lucky day message and confetti
+        eventMessage.innerHTML =
+          `On this day, <b>${formattedDate}</b>, it's your <b>Lucky Day 🍀</b>!<br><br>Today is your lucky day! Celebrate with confetti!`;
+
+        eventImage.style.display = "none";
+        eventPopup.style.display = "block";
+        launchConfetti();
+      } else {
+        // No real event — pick random fake holiday
+        const randomHoliday = fakeHolidays[Math.floor(Math.random() * fakeHolidays.length)];
+        const description = eventDescriptions[randomHoliday] || "";
+
+        eventMessage.innerHTML =
+          `On this day, <b>${formattedDate}</b>, we celebrate <b>${randomHoliday}</b>.<br><br>${description}`;
+
+        eventImage.src = fakeHolidayImages[randomHoliday] || "";
+        eventImage.style.display = eventImage.src ? "block" : "none";
+
+        eventPopup.style.display = "block";
+      }
+    } else {
+      eventMessage.textContent = "No real events yet for this date!";
+      eventImage.style.display = "none";
+      eventPopup.style.display = "block";
+    }
+  }
+
+  function closePopup() {
+    document.getElementById('eventPopup').style.display = 'none';
+  }
+
+  function launchConfetti() {
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1500 };
+
+    function randomInRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(function() {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        return;
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+      confetti(Object.assign({}, defaults, { 
+        particleCount, 
+        origin: { x: Math.random(), y: Math.random() - 0.2 }
+      }));
+    }, 250);
+  }
+
+  // Backwards clock logic
+  const hourHand = document.getElementById("hourHand");
+  const minuteHand = document.getElementById("minuteHand");
+  const secondHand = document.getElementById("secondHand");
+
+  function updateClock() {
+    const now = new Date();
+
+    // Backwards time:
+    const seconds = 60 - now.getSeconds();
+    const minutes = 60 - now.getMinutes() - 1; // -1 because seconds are counting down
+    const hours = 12 - (now.getHours() % 12) - (minutes < 59 ? 1 : 0);
+
+    const secondDeg = seconds * 6; // 360 / 60
+    const minuteDeg = minutes * 6 + (seconds * 0.1); // 6 degrees per minute + smooth
+    const hourDeg = hours * 30 + (minutes * 0.5); // 30 degrees per hour + smooth
+
+    secondHand.style.transform = `translate(-50%, -100%) rotate(${secondDeg}deg)`;
+    minuteHand.style.transform = `translate(-50%, -100%) rotate(${minuteDeg}deg)`;
+    hourHand.style.transform = `translate(-50%, -100%) rotate(${hourDeg}deg)`;
+  }
+
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  document.getElementById("prevMonth").addEventListener("click", () => {
+    currentMonth--;
+    if (currentMonth < 0) {
+      currentMonth = 11;
+      currentYear--;
+    }
+    renderCalendar();
+  });
+
+  document.getElementById("nextMonth").addEventListener("click", () => {
+    currentMonth++;
+    if (currentMonth > 11) {
+      currentMonth = 0;
+      currentYear++;
+    }
+    renderCalendar();
+  });
+
+  yearSelect.addEventListener("change", () => {
+    currentYear = parseInt(yearSelect.value);
+    renderCalendar();
+  });
+
+  renderCalendar();
+
+  // Zodiac forecast feature
+  const zodiacBtn = document.getElementById("getZodiacBtn");
+  const zodiacResult = document.getElementById("zodiacResult");
+  const dobInput = document.getElementById("dobInput");
+
+  function getZodiacSign(day, month) {
+    // month: 1-12, day: 1-31
+    if((month == 1 && day >= 20) || (month == 2 && day <= 18)) return "Aquarius";
+    if((month == 2 && day >= 19) || (month == 3 && day <= 20)) return "Pisces";
+    if((month == 3 && day >= 21) || (month == 4 && day <= 19)) return "Aries";
+    if((month == 4 && day >= 20) || (month == 5 && day <= 20)) return "Taurus";
+    if((month == 5 && day >= 21) || (month == 6 && day <= 20)) return "Gemini";
+    if((month == 6 && day >= 21) || (month == 7 && day <= 22)) return "Cancer";
+    if((month == 7 && day >= 23) || (month == 8 && day <= 22)) return "Leo";
+    if((month == 8 && day >= 23) || (month == 9 && day <= 22)) return "Virgo";
+    if((month == 9 && day >= 23) || (month == 10 && day <= 22)) return "Libra";
+    if((month == 10 && day >= 23) || (month == 11 && day <= 21)) return "Scorpio";
+    if((month == 11 && day >= 22) || (month == 12 && day <= 21)) return "Sagittarius";
+    if((month == 12 && day >= 22) || (month == 1 && day <= 19)) return "Capricorn";
+    return "";
+  }
+
+  const zodiacTraits = {
+    "Aquarius": "Innovative, Independent, Humanitarian",
+    "Pisces": "Compassionate, Artistic, Intuitive",
+    "Aries": "Courageous, Energetic, Confident",
+    "Taurus": "Reliable, Patient, Practical",
+    "Gemini": "Adaptable, Outgoing, Intelligent",
+    "Cancer": "Emotional, Loyal, Protective",
+    "Leo": "Generous, Warm-hearted, Cheerful",
+    "Virgo": "Analytical, Kind, Hardworking",
+    "Libra": "Diplomatic, Graceful, Social",
+    "Scorpio": "Passionate, Resourceful, Brave",
+    "Sagittarius": "Optimistic, Adventurous, Honest",
+    "Capricorn": "Disciplined, Ambitious, Wise"
+  };
+
+  const zodiacWeatherForecasts = {
+    "Aquarius": "Expect a breeze of creativity today with a chance of unexpected adventures.",
+    "Pisces": "A calm and dreamy day ahead, perfect for reflection and rest.",
+    "Aries": "Fire up your energy, but watch for sudden storms of impatience.",
+    "Taurus": "Stable and sunny vibes, a great day to build and nurture relationships.",
+    "Gemini": "Windy and changeable, communication flows freely—embrace it!",
+    "Cancer": "Cloudy with emotional showers, but your inner sun shines bright.",
+    "Leo": "Bright sunshine and warm moments — the spotlight is on you!",
+    "Virgo": "Clear skies for focused work, just watch for tiny distractions.",
+    "Libra": "Balanced weather today with social breezes—perfect for harmony.",
+    "Scorpio": "Intense thunderstorms may occur; channel that passion wisely.",
+    "Sagittarius": "Sunny with a chance of exploration — adventure calls!",
+    "Capricorn": "Cold front of discipline moves in, great for long-term goals."
+  };
+
+  zodiacBtn.addEventListener("click", () => {
+    if (!dobInput.value) {
+      zodiacResult.innerHTML = `<span style="color:#d81b60; font-weight:700;">Please select your date of birth first.</span>`;
+      return;
+    }
+    const dob = new Date(dobInput.value);
+    const day = dob.getDate();
+    const month = dob.getMonth() + 1;
+
+    const sign = getZodiacSign(day, month);
+    const traits = zodiacTraits[sign];
+    const forecast = zodiacWeatherForecasts[sign];
+
+    zodiacResult.innerHTML = `
+      <strong>Zodiac Sign:</strong> ${sign} <br>
+      <strong>Personality Traits:</strong> ${traits} <br><br>
+      <strong>Weather Forecast:</strong> ${forecast}
+    `;
+  });
+</script>
+
+</body>
+</html>
